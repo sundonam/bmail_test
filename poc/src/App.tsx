@@ -7,10 +7,10 @@ import { ScenarioPanel } from './components/ScenarioPanel';
 import type { ActorId } from './types';
 
 const TABS: { id: ActorId; label: string }[] = [
-  { id: 'user', label: 'User' },
+  { id: 'user', label: 'Mailbox' },
   { id: 'isp', label: 'bMail ISP' },
   { id: 'bca', label: 'bCA (KT)' },
-  { id: 'platform', label: 'Platform (Coupang)' }
+  { id: 'platform', label: 'Marketplace' }
 ];
 
 function App() {
@@ -32,7 +32,7 @@ function App() {
             </button>
           ))}
         </nav>
-        <div className="topbar-sub">Lee et al. (2025) · Research PoC</div>
+        <div className="topbar-sub">Lee et al. (2025) — Research PoC</div>
       </header>
 
       {activeTab === 'user' && <UserView />}

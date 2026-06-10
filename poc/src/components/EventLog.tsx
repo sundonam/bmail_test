@@ -14,7 +14,7 @@ export function EventLog({ actorFilter }: Props) {
   const log = useDemoStore((s) => s.log);
   const rows = actorFilter ? log.filter((e) => e.actor === actorFilter) : log;
   if (rows.length === 0) {
-    return <div className="event-log faint">기록된 이벤트가 없다.</div>;
+    return <div className="event-log faint">No events yet.</div>;
   }
   return (
     <div className="event-log">

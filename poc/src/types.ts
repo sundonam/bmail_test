@@ -105,6 +105,9 @@ export type Email = {
 export type ScenarioStep = {
   num: number;
   actor: ActorId;
+  targetId: string;
+  buttonLabel: string;
+  instruction: string;
   message: string;
   apply: (s: DemoState) => void;
 };

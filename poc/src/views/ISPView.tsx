@@ -3,6 +3,7 @@ import { useDemoStore } from '../state/store';
 import { Card } from '../components/Card';
 import { Field } from '../components/Field';
 import { EventLog } from '../components/EventLog';
+import { ScenarioActionCard } from '../components/ScenarioActionCard';
 import { DOMAIN_LOOKUPS } from '../data/domains';
 
 export function ISPView() {
@@ -15,23 +16,26 @@ export function ISPView() {
 
   return (
     <div className="page">
-      <div className="page-title">bMail ISP · 운영 콘솔</div>
+      <div className="page-title">bMail ISP — operator console</div>
       <div className="page-sub">
-        도메인 등록부, bMail ID 발급 현황, change token 발급 이력을 관리한다. 인증서는 서명된 JWT 로만 보관하며 PII 컬럼은 존재하지 않는다.
+        Manages the public domain registry, issues bMail IDs, and orchestrates change tokens. Certificates
+        are stored as signed JWTs only — no PII columns exist in this database.
       </div>
 
-      <Card title="발급된 bMail ID">
+      <ScenarioActionCard actor="isp" />
+
+      <Card title="Issued bMail IDs">
         {bmailIds.length === 0 ? (
-          <div className="faint" style={{ fontSize: 13 }}>아직 발급된 ID 가 없다.</div>
+          <div className="faint" style={{ fontSize: 13 }}>No bMail IDs issued yet.</div>
         ) : (
           <table className="tbl">
             <thead>
               <tr>
-                <th>bMail 주소</th>
-                <th>표시 이름</th>
-                <th>모드</th>
-                <th>인증 JTI</th>
-                <th>등록일</th>
+                <th>Address</th>
+                <th>Display name</th>
+                <th>Mode</th>
+                <th>Certificate JTI</th>
+                <th>Registered</th>
               </tr>
             </thead>
             <tbody>
@@ -39,7 +43,7 @@ export function ISPView() {
                 <tr key={b.address}>
                   <td className="mono">{b.address}</td>
                   <td>{b.displayName}</td>
-                  <td>{b.mode === 'real' ? '실명' : '익명'}</td>
+                  <td>{b.mode === 'real' ? 'Real name' : 'Anonymous'}</td>
                   <td className="mono">{b.certificateJti}</td>
                   <td>{b.registeredAt}</td>
                 </tr>
@@ -49,16 +53,16 @@ export function ISPView() {
         )}
       </Card>
 
-      <Card title="도메인 등록부">
+      <Card title="Domain registry">
         <table className="tbl">
           <thead>
             <tr>
-              <th>도메인</th>
-              <th>기반 제공자</th>
-              <th>인증 기관</th>
+              <th>Domain</th>
+              <th>Provider</th>
+              <th>CA partners</th>
               <th>DKIM</th>
-              <th>포털 노출</th>
-              <th>상태</th>
+              <th>Listed</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody>
@@ -67,8 +71,8 @@ export function ISPView() {
                 <td className="mono">{d.domain}</td>
                 <td>{d.baseProvider}</td>
                 <td>{d.caPartners.join(', ') || '—'}</td>
-                <td>{d.dkimStatus === 'pass' ? 'pass' : 'fail'}</td>
-                <td>{d.portalListed ? '예' : '아니오'}</td>
+                <td>{d.dkimStatus}</td>
+                <td>{d.portalListed ? 'yes' : 'no'}</td>
                 <td>{d.status}</td>
               </tr>
             ))}
@@ -76,7 +80,7 @@ export function ISPView() {
         </table>
       </Card>
 
-      <Card title="공개 도메인 조회 포털">
+      <Card title="Public domain lookup portal">
         <div className="btn-row" style={{ marginBottom: 12 }}>
           {DOMAIN_LOOKUPS.map((d) => (
             <button key={d.domain} className="btn" onClick={() => setLookupVerdict(d)}>
@@ -86,8 +90,8 @@ export function ISPView() {
         </div>
         {lookupVerdict && (
           <div>
-            <Field label="조회 도메인" mono>{lookupVerdict.domain}</Field>
-            <Field label="판정">{lookupVerdict.verdict}</Field>
+            <Field label="Domain queried" mono>{lookupVerdict.domain}</Field>
+            <Field label="Verdict">{lookupVerdict.verdict}</Field>
             <div className="muted" style={{ fontSize: 13, marginTop: 8 }}>
               {lookupVerdict.note}
             </div>
@@ -96,33 +100,33 @@ export function ISPView() {
       </Card>
 
       <div className="grid-2">
-        <Card title="ID-change 토큰">
+        <Card title="ID-change tokens">
           {tokens.length === 0 ? (
-            <div className="faint" style={{ fontSize: 13 }}>발급된 토큰이 없다.</div>
+            <div className="faint" style={{ fontSize: 13 }}>No tokens issued yet.</div>
           ) : (
             tokens.map((t) => (
               <div key={t.jti} style={{ paddingBottom: 8 }}>
                 <Field label="JTI" mono>{t.jti}</Field>
-                <Field label="구 ID" mono>{t.oldId}</Field>
-                <Field label="신 ID" mono>{t.newId}</Field>
-                <Field label="발급일">{t.issuedAt}</Field>
+                <Field label="Old ID" mono>{t.oldId}</Field>
+                <Field label="New ID" mono>{t.newId}</Field>
+                <Field label="Issued">{t.issuedAt}</Field>
               </div>
             ))
           )}
         </Card>
 
-        <Card title="피싱 신고">
+        <Card title="Phishing reports">
           {phishing.length === 0 ? (
-            <div className="faint" style={{ fontSize: 13 }}>접수된 신고가 없다.</div>
+            <div className="faint" style={{ fontSize: 13 }}>No reports yet.</div>
           ) : (
             phishing.map((p) => (
               <div key={p.id} style={{ paddingBottom: 8 }}>
-                <Field label="신고자" mono>{p.reporter}</Field>
-                <Field label="의심 발신자" mono>{p.suspectBmailId}</Field>
-                <Field label="상태">
-                  {p.status === 'verifying' && '백업 채널 확인 중'}
-                  {p.status === 'phishing-confirmed' && '피싱 확정'}
-                  {p.status === 'sender-confirmed' && '정상 발신 확인'}
+                <Field label="Reporter" mono>{p.reporter}</Field>
+                <Field label="Suspect sender" mono>{p.suspectBmailId}</Field>
+                <Field label="Status">
+                  {p.status === 'verifying' && 'Verifying via backup channel'}
+                  {p.status === 'phishing-confirmed' && 'Phishing confirmed'}
+                  {p.status === 'sender-confirmed' && 'Sender confirmed legitimate'}
                 </Field>
               </div>
             ))
@@ -130,7 +134,7 @@ export function ISPView() {
         </Card>
       </div>
 
-      <Card title="이벤트">
+      <Card title="Events">
         <EventLog actorFilter="isp" />
       </Card>
     </div>

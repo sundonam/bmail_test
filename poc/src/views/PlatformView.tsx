@@ -1,6 +1,7 @@
 import { useDemoStore } from '../state/store';
 import { Card } from '../components/Card';
 import { EventLog } from '../components/EventLog';
+import { ScenarioActionCard } from '../components/ScenarioActionCard';
 
 export function PlatformView() {
   const members = useDemoStore((s) => s.platform.members);
@@ -8,20 +9,24 @@ export function PlatformView() {
 
   return (
     <div className="page">
-      <div className="page-title">Coupang · bMember 플랫폼 콘솔</div>
+      <div className="page-title">Coupang — bMember marketplace</div>
       <div className="page-sub">
-        change token 으로 회원 ID 가 재매핑되어도 구매·리뷰 이력은 그대로 보존된다. bMail ID 등록 회원의 리뷰는 식별 가능 작성자로 표기된다.
+        When a member migrates their ID via a signed change token, the member record is remapped while
+        purchase and review history is preserved. Reviews by certified bMail authors are tagged as
+        identifiable.
       </div>
 
-      <Card title="회원">
+      <ScenarioActionCard actor="platform" />
+
+      <Card title="Members">
         <table className="tbl">
           <thead>
             <tr>
-              <th>플랫폼 회원 ID</th>
-              <th>현재 bMail / 외부 ID</th>
-              <th>가입일</th>
-              <th>구매 수</th>
-              <th>리뷰 수</th>
+              <th>Member ID</th>
+              <th>Current bMail / external ID</th>
+              <th>Joined</th>
+              <th>Purchases</th>
+              <th>Reviews</th>
             </tr>
           </thead>
           <tbody>
@@ -38,7 +43,7 @@ export function PlatformView() {
         </table>
       </Card>
 
-      <Card title="리뷰 신뢰 계층">
+      <Card title="Review trust layer">
         {reviews.map((r) => (
           <div
             key={r.id}
@@ -46,17 +51,17 @@ export function PlatformView() {
           >
             <div style={{ fontSize: 12, color: 'var(--text-faint)', marginBottom: 4 }}>
               <span className="mono">{r.memberId}</span>
-              <span style={{ margin: '0 8px' }}>·</span>
+              <span style={{ margin: '0 8px' }}>—</span>
               <span>{r.postedAt}</span>
-              <span style={{ margin: '0 8px' }}>·</span>
-              <span>{r.identifiable ? '식별 가능 작성자' : '미식별 작성자'}</span>
+              <span style={{ margin: '0 8px' }}>—</span>
+              <span>{r.identifiable ? 'Identifiable author' : 'Unverified author'}</span>
             </div>
             <div style={{ fontSize: 13 }}>{r.content}</div>
           </div>
         ))}
       </Card>
 
-      <Card title="이벤트">
+      <Card title="Events">
         <EventLog actorFilter="platform" />
       </Card>
     </div>

@@ -69,14 +69,14 @@ export const initialState: DemoState = {
       {
         id: 'rev-001',
         memberId: 'coupang-44120',
-        content: '학교 기숙사 입주 첫 달, 라텍스 베개 만족도 높음.',
+        content: 'Latex pillow held up well through my first month in the dorm. Good firmness.',
         identifiable: false,
         postedAt: '2024-03-12'
       },
       {
         id: 'rev-002',
         memberId: 'coupang-44120',
-        content: '대학원 발표용 노트북 스탠드, 각도 조절 안정적.',
+        content: 'Laptop stand for grad presentations. Angle adjustment is solid, no wobble.',
         identifiable: false,
         postedAt: '2024-11-08'
       }
@@ -90,8 +90,8 @@ export const initialState: DemoState = {
         id: 'mail-001',
         from: 'prof.lee@bgmail.com',
         fromDisplay: 'Prof. Hyunwoo Lee',
-        subject: '공동 연구 미팅 일정 회신 부탁드립니다',
-        preview: '박지연 선생, 다음 주 화요일 오후 IS 저널 투고 일정 관련해서 논의하면 좋겠습니다.',
+        subject: 'Re: joint research meeting next week',
+        preview: 'Jiyeon, can we sit down Tuesday afternoon to talk through the IS journal submission timeline?',
         receivedAt: '2026-06-10 09:14',
         trustLabel: 'pending'
       },
@@ -99,17 +99,17 @@ export const initialState: DemoState = {
         id: 'mail-002',
         from: 'support@bgmail.net',
         fromDisplay: 'bMail Support',
-        subject: '[긴급] bMail 계정 비밀번호 변경 필요',
-        preview: '계정 보안을 위해 즉시 비밀번호를 변경해주세요. 아래 링크에서 처리할 수 있습니다.',
+        subject: '[Urgent] Change your bMail account password now',
+        preview: 'For your account security, please reset your password immediately using the link below.',
         receivedAt: '2026-06-10 08:47',
         trustLabel: 'pending'
       },
       {
         id: 'mail-003',
         from: 'notice@univ.edu',
-        fromDisplay: '대학원 행정실',
-        subject: '졸업 행정 안내',
-        preview: '6월 졸업 예정자 대상 행정 절차를 안내드립니다. 학위 수여식 RSVP 까지 확인 바랍니다.',
+        fromDisplay: 'Graduate School Office',
+        subject: 'Graduation administrative notice',
+        preview: 'A reminder of the administrative procedures and the RSVP deadline for the degree ceremony.',
         receivedAt: '2026-06-09 17:02',
         trustLabel: 'pending'
       }
@@ -124,7 +124,7 @@ export const initialState: DemoState = {
     {
       ts: '00:00:00',
       actor: 'isp',
-      message: '시연 시작 — 시나리오를 우측 하단에서 선택해 진행한다.'
+      message: 'Demo ready. Select a scenario from the bottom-right panel to begin.'
     }
   ]
 };
