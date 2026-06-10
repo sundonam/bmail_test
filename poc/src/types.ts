@@ -110,7 +110,11 @@ export type ScenarioStep = {
   instruction: string;
   message: string;
   apply: (s: DemoState) => void;
+  pendingTitle?: string;
+  pendingBody?: string;
 };
+
+export type MailboxView = 'inbox' | 'detail' | 'register';
 
 export type DemoState = {
   bca: {
@@ -133,6 +137,8 @@ export type DemoState = {
     activeBmailId: string | null;
     expiringExternalId: string | null;
     inbox: Email[];
+    mailboxView: MailboxView;
+    selectedEmailId: string | null;
   };
   scenario: {
     current: ScenarioId | null;

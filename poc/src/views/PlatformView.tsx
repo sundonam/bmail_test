@@ -1,7 +1,7 @@
 import { useDemoStore } from '../state/store';
 import { Card } from '../components/Card';
 import { EventLog } from '../components/EventLog';
-import { ScenarioActionCard } from '../components/ScenarioActionCard';
+import { PendingRequest } from '../components/PendingRequest';
 
 export function PlatformView() {
   const members = useDemoStore((s) => s.platform.members);
@@ -11,12 +11,12 @@ export function PlatformView() {
     <div className="page">
       <div className="page-title">Coupang — bMember marketplace</div>
       <div className="page-sub">
-        When a member migrates their ID via a signed change token, the member record is remapped while
-        purchase and review history is preserved. Reviews by certified bMail authors are tagged as
-        identifiable.
+        When a member migrates their ID via a signed change token, the member record is remapped
+        while purchase and review history is preserved. Reviews by certified bMail authors are
+        tagged as identifiable.
       </div>
 
-      <ScenarioActionCard actor="platform" />
+      <PendingRequest actor="platform" title="Inbox — pending member actions" />
 
       <Card title="Members">
         <table className="tbl">

@@ -4,6 +4,7 @@ import { ISPView } from './views/ISPView';
 import { BCAView } from './views/BCAView';
 import { PlatformView } from './views/PlatformView';
 import { ScenarioPanel } from './components/ScenarioPanel';
+import { ProgressBar } from './components/ProgressBar';
 import type { ActorId } from './types';
 
 const TABS: { id: ActorId; label: string }[] = [
@@ -19,6 +20,7 @@ function App() {
 
   return (
     <div className="app">
+      <ProgressBar />
       <header className="topbar">
         <div className="topbar-title">bMail ID Infrastructure</div>
         <nav className="tabs">

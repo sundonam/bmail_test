@@ -1,7 +1,7 @@
 import { useDemoStore } from '../state/store';
 import { Card } from '../components/Card';
 import { EventLog } from '../components/EventLog';
-import { ScenarioActionCard } from '../components/ScenarioActionCard';
+import { PendingRequest } from '../components/PendingRequest';
 
 export function BCAView() {
   const subscribers = useDemoStore((s) => s.bca.subscribers);
@@ -11,11 +11,11 @@ export function BCAView() {
     <div className="page">
       <div className="page-title">KT Telecom — Certification Authority</div>
       <div className="page-sub">
-        Under the zero-copy policy, subscriber PII lives only in this console. The bMail ISP receives a
-        signed certificate JWT — never the underlying personal data.
+        Under the zero-copy policy, subscriber PII lives only in this console. The bMail ISP receives
+        a signed certificate JWT — never the underlying personal data.
       </div>
 
-      <ScenarioActionCard actor="bca" />
+      <PendingRequest actor="bca" title="Inbox — pending certifications" />
 
       <Card title="Subscribers (PII)">
         <table className="tbl">
@@ -41,8 +41,8 @@ export function BCAView() {
           </tbody>
         </table>
         <div className="muted" style={{ fontSize: 12, marginTop: 10 }}>
-          None of these columns appear in the bMail ISP database. The ISP holds only display names and
-          certificate JTIs.
+          None of these columns appear in the bMail ISP database. The ISP holds only display names
+          and certificate JTIs.
         </div>
       </Card>
 

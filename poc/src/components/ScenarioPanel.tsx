@@ -27,7 +27,9 @@ export function ScenarioPanel() {
   return (
     <div className="scenario-panel">
       <div className="scenario-header">
-        <span className="scenario-header-title">Demo Scenarios</span>
+        <span className="scenario-header-title">
+          {current ? 'Scenario in progress' : 'Demo scenarios'}
+        </span>
         {current ? (
           <button className="btn btn-sm" onClick={cancelScenario}>
             Cancel
@@ -71,10 +73,7 @@ export function ScenarioPanel() {
                 <div className="scenario-guide-instruction">
                   Switch to the <strong>{ACTOR_NAME[step.actor]}</strong> tab to continue.
                 </div>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => setActiveTab(step.actor)}
-                >
+                <button className="btn btn-primary" onClick={() => setActiveTab(step.actor)}>
                   Go to {ACTOR_NAME[step.actor]}
                 </button>
               </>
@@ -82,7 +81,7 @@ export function ScenarioPanel() {
               <div className="scenario-guide-instruction">
                 {step.instruction}
                 <div className="scenario-guide-hint">
-                  Click the highlighted button to continue.
+                  Look for the highlighted control in the {ACTOR_NAME[step.actor]} view.
                 </div>
               </div>
             )}
@@ -90,7 +89,9 @@ export function ScenarioPanel() {
               {SCENARIOS[current].steps.map((s) => (
                 <div
                   key={s.num}
-                  className={`scenario-step${s.num === step.num ? ' current' : ''}${s.num < step.num ? ' done' : ''}`}
+                  className={`scenario-step${s.num === step.num ? ' current' : ''}${
+                    s.num < step.num ? ' done' : ''
+                  }`}
                 >
                   <span className="scenario-step-num">{s.num}.</span>
                   <span>

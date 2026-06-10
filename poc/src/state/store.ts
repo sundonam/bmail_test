@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ActorId, DemoState, ScenarioId } from '../types';
+import type { ActorId, DemoState, MailboxView, ScenarioId } from '../types';
 import { initialState } from '../data/actors';
 import { SCENARIOS } from '../data/scenarios';
 
@@ -7,7 +7,10 @@ type Tab = ActorId;
 
 type StoreActions = {
   activeTab: Tab;
+  processing: boolean;
   setActiveTab: (t: Tab) => void;
+  setMailboxView: (v: MailboxView) => void;
+  selectEmail: (id: string | null) => void;
   startScenario: (id: ScenarioId) => void;
   advanceScenario: (targetId: string) => void;
   cancelScenario: () => void;
@@ -34,13 +37,30 @@ export function getCurrentStep(scenarioId: ScenarioId | null, stepNum: number) {
   return sc.steps[stepNum - 1] ?? null;
 }
 
+function findScenarioStartingWith(targetId: string): ScenarioId | null {
+  const ids: ScenarioId[] = ['S1', 'S2', 'S3', 'S4'];
+  for (const id of ids) {
+    if (SCENARIOS[id].steps[0].targetId === targetId) return id;
+  }
+  return null;
+}
+
+const PROCESS_DELAY_MS = 700;
+
 export const useDemoStore = create<Store>((set, get) => ({
   ...clone(initialState),
   activeTab: 'user',
+  processing: false,
   setActiveTab: (t) => set({ activeTab: t }),
-  resetDemo: () => set({ ...clone(initialState), activeTab: get().activeTab }),
+  setMailboxView: (v) => set((s) => ({ user: { ...s.user, mailboxView: v } })),
+  selectEmail: (id) =>
+    set((s) => ({
+      user: { ...s.user, selectedEmailId: id, mailboxView: id ? 'detail' : 'inbox' }
+    })),
+  resetDemo: () => set({ ...clone(initialState), activeTab: get().activeTab, processing: false }),
   cancelScenario: () =>
     set({
+      processing: false,
       scenario: {
         current: null,
         step: 0,
@@ -56,38 +76,56 @@ export const useDemoStore = create<Store>((set, get) => ({
     });
   },
   advanceScenario: (targetId) => {
-    const state = get();
-    const scenarioId = state.scenario.current;
-    if (!scenarioId) return;
+    let state = get();
+    if (state.processing) return;
+
+    if (!state.scenario.current) {
+      const startable = findScenarioStartingWith(targetId);
+      if (!startable) return;
+      set({
+        scenario: { current: startable, step: 1, completed: state.scenario.completed }
+      });
+      state = get();
+    }
+
+    const scenarioId = state.scenario.current!;
     const scenario = SCENARIOS[scenarioId];
     const step = scenario.steps[state.scenario.step - 1];
     if (!step || step.targetId !== targetId) return;
 
-    const draft: DemoState = clone({
-      bca: state.bca,
-      isp: state.isp,
-      platform: state.platform,
-      user: state.user,
-      scenario: state.scenario,
-      log: state.log
-    });
-    step.apply(draft);
-    draft.log = [...state.log, { ts: now(), actor: step.actor, message: step.message }];
+    set({ processing: true });
 
-    const nextStepNum = step.num + 1;
-    const isLast = nextStepNum > scenario.steps.length;
+    setTimeout(() => {
+      const cur = get();
+      const draft: DemoState = clone({
+        bca: cur.bca,
+        isp: cur.isp,
+        platform: cur.platform,
+        user: cur.user,
+        scenario: cur.scenario,
+        log: cur.log
+      });
+      step.apply(draft);
+      draft.log = [...cur.log, { ts: now(), actor: step.actor, message: step.message }];
 
-    set({
-      bca: draft.bca,
-      isp: draft.isp,
-      platform: draft.platform,
-      user: draft.user,
-      log: draft.log,
-      scenario: {
-        current: isLast ? null : scenarioId,
-        step: isLast ? 0 : nextStepNum,
-        completed: isLast ? [...state.scenario.completed, scenarioId] : state.scenario.completed
-      }
-    });
+      const nextStepNum = step.num + 1;
+      const isLast = nextStepNum > scenario.steps.length;
+
+      set({
+        processing: false,
+        bca: draft.bca,
+        isp: draft.isp,
+        platform: draft.platform,
+        user: draft.user,
+        log: draft.log,
+        scenario: {
+          current: isLast ? null : scenarioId,
+          step: isLast ? 0 : nextStepNum,
+          completed: isLast
+            ? [...cur.scenario.completed, scenarioId]
+            : cur.scenario.completed
+        }
+      });
+    }, PROCESS_DELAY_MS);
   }
 }));

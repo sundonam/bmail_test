@@ -85,6 +85,8 @@ export const initialState: DemoState = {
   user: {
     activeBmailId: null,
     expiringExternalId: 'jpark@univ.edu',
+    mailboxView: 'inbox',
+    selectedEmailId: null,
     inbox: [
       {
         id: 'mail-001',
