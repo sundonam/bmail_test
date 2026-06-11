@@ -332,98 +332,256 @@ function ComposeView() {
   );
 }
 
+const REG_SUMMARY: { label: string; value: string }[] = [
+  { label: 'bMail address', value: 'j.park@bgmail.com' },
+  { label: 'Domain', value: 'bgmail.com (KT-certified)' },
+  { label: 'Privacy mode', value: 'Real name — Jiyeon Park' },
+  { label: 'Certification Authority', value: 'KT Telecom' },
+  { label: 'Backup channel', value: 'KakaoTalk: jpark_kr' }
+];
+
+function ConfirmRegistrationModal({
+  open,
+  onCancel,
+  onConfirm,
+  busy
+}: {
+  open: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+  busy: boolean;
+}) {
+  if (!open) return null;
+  return (
+    <div className="modal-overlay" onClick={onCancel}>
+      <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-title">Submit this registration?</div>
+        <div className="modal-body">
+          KT Telecom will match your mobile-subscriber record and issue a signed certificate.
+          The bMail ISP receives only the signed certificate token — personal data stays at KT.
+        </div>
+        <div className="modal-summary">
+          {REG_SUMMARY.map((row) => (
+            <div key={row.label} className="modal-summary-row">
+              <span className="modal-summary-label">{row.label}</span>
+              <span className="modal-summary-value mono">{row.value}</span>
+            </div>
+          ))}
+        </div>
+        <div className="modal-actions">
+          <button className="btn" onClick={onCancel} disabled={busy}>
+            Review again
+          </button>
+          <button
+            className="btn btn-primary scenario-target"
+            data-step-target="s1-form-submit"
+            onClick={onConfirm}
+            disabled={busy}
+          >
+            {busy ? 'Submitting…' : 'Confirm and submit'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SuccessCheckIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="12" r="11" stroke="currentColor" strokeWidth="2" />
+      <path
+        d="M7 12.5l3 3 7-7"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
+function RegistrationSuccess() {
+  const setActiveTab = useDemoStore((s) => s.setActiveTab);
+  const activeTab = useDemoStore((s) => s.activeTab);
+  const scenarioId = useDemoStore((s) => s.scenario.current);
+  const stepNum = useDemoStore((s) => s.scenario.step);
+
+  const ispNext = scenarioId === 'S1' && stepNum === 2;
+  const submittedRef = 'REG-2706101A';
+
+  return (
+    <Card>
+      <div className="success-card">
+        <div className="success-mark">
+          <SuccessCheckIcon />
+        </div>
+        <div className="success-title">Registration submitted</div>
+        <div className="success-desc">
+          Your request <span className="mono">{submittedRef}</span> was queued at the bMail ISP and
+          is waiting to be forwarded to KT for certification. You will be notified via the backup
+          channel once activation completes.
+        </div>
+
+        <div className="success-summary">
+          <div className="success-summary-title">Submitted details</div>
+          {REG_SUMMARY.map((row) => (
+            <div key={row.label} className="field">
+              <span className="field-label">{row.label}</span>
+              <span className="field-value mono">{row.value}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="success-next">
+          <div className="success-next-title">What happens next</div>
+          <ol className="success-next-list">
+            <li>The ISP forwards your request to KT — no personal data is attached.</li>
+            <li>KT verifies you against the carrier subscriber database.</li>
+            <li>KT issues an Ed25519-signed certificate JWT back to the ISP.</li>
+            <li>The ISP activates j.park@bgmail.com — your PII never leaves KT.</li>
+          </ol>
+        </div>
+
+        {ispNext && activeTab !== 'isp' && (
+          <div className="reg-form-actions" style={{ borderTop: 'none', marginTop: 18 }}>
+            <button className="btn btn-primary" onClick={() => setActiveTab('isp')}>
+              Open ISP Console to continue
+            </button>
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
+
 function RegistrationForm() {
   const setMailboxView = useDemoStore((s) => s.setMailboxView);
   const advance = useAdvance();
   const targetId = useCurrentStepTargetId();
   const processing = useDemoStore((s) => s.processing);
   const completed = useDemoStore((s) => s.scenario.completed);
+  const scenarioId = useDemoStore((s) => s.scenario.current);
+  const stepNum = useDemoStore((s) => s.scenario.step);
   const registered = completed.includes('S1');
+
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     if (registered) setMailboxView('inbox');
   }, [registered, setMailboxView]);
 
+  useEffect(() => {
+    // Reset local submission state if the scenario is cancelled before completing
+    if (!scenarioId && !registered) setSubmitted(false);
+  }, [scenarioId, registered]);
+
   if (registered) return null;
 
   const submitIsTarget = targetId === 's1-form-submit';
+  const pastStep1 = scenarioId === 'S1' && stepNum >= 2;
+  const showSuccess = submitted || pastStep1;
+
+  if (showSuccess) return <RegistrationSuccess />;
+
+  function handleSubmitClick() {
+    setShowConfirm(true);
+  }
+
+  function handleConfirm() {
+    setSubmitted(true);
+    setShowConfirm(false);
+    // Triggers S1 step 1 (also auto-starts S1 when no scenario is active yet).
+    advance('s1-form-submit');
+  }
 
   return (
-    <Card>
-      <div className="reg-form">
-        <div className="reg-form-header">
-          <div className="reg-form-title">Set up a bMail ID</div>
-          <div className="reg-form-sub">
-            Your bMail ID is a lifelong identifier. Personal data stays with the certification
-            authority — the ISP only stores a signed certificate.
+    <>
+      <Card>
+        <div className="reg-form">
+          <div className="reg-form-header">
+            <div className="reg-form-title">Set up a bMail ID</div>
+            <div className="reg-form-sub">
+              Your bMail ID is a lifelong identifier. Personal data stays with the certification
+              authority — the ISP only stores a signed certificate.
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Email name</label>
+            <input type="text" className="form-input" value="j.park" readOnly />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Domain</label>
+            <select className="form-input" value="bgmail.com" onChange={() => {}}>
+              <option value="bgmail.com">bgmail.com (Gmail-backed, KT-certified)</option>
+              <option value="bnaver.com">bnaver.com (Naver-backed, KT-certified)</option>
+            </select>
+            <div className="form-hint">Both options are listed in the bMail public registry.</div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Privacy mode</label>
+            <div className="radio-row">
+              <label>
+                <input type="radio" name="mode" checked onChange={() => {}} /> Real name (Jiyeon Park)
+              </label>
+              <label>
+                <input type="radio" name="mode" checked={false} onChange={() => {}} /> Anonymous
+                pseudonym (e.g. 19902301@bgmail.com — domain still certifies identifiability)
+              </label>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Certification Authority (bCA)</label>
+            <select className="form-input" value="kt" onChange={() => {}}>
+              <option value="kt">KT Telecom (mobile subscriber verification)</option>
+            </select>
+            <div className="form-hint">
+              The bCA holds your verified identity. The ISP receives only a signed certificate token.
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Backup verification channel</label>
+            <input type="text" className="form-input" value="KakaoTalk: jpark_kr" readOnly />
+            <div className="form-hint">
+              Used by the ISP only when a recipient flags a suspicious mail from your address.
+            </div>
+          </div>
+
+          <div className="form-preview">
+            <span className="form-label">Your bMail address will be</span>
+            <span className="mono" style={{ marginLeft: 12 }}>j.park@bgmail.com</span>
+          </div>
+
+          <div className="reg-form-actions">
+            <button className="btn" onClick={() => setMailboxView('inbox')}>
+              Cancel
+            </button>
+            <button
+              className={`btn btn-primary${submitIsTarget ? ' scenario-target' : ''}`}
+              data-step-target={submitIsTarget ? 's1-form-submit' : undefined}
+              onClick={handleSubmitClick}
+              disabled={processing}
+            >
+              Submit registration
+            </button>
           </div>
         </div>
+      </Card>
 
-        <div className="form-group">
-          <label className="form-label">Email name</label>
-          <input type="text" className="form-input" value="j.park" readOnly />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Domain</label>
-          <select className="form-input" value="bgmail.com" onChange={() => {}}>
-            <option value="bgmail.com">bgmail.com (Gmail-backed, KT-certified)</option>
-            <option value="bnaver.com">bnaver.com (Naver-backed, KT-certified)</option>
-          </select>
-          <div className="form-hint">Both options are listed in the bMail public registry.</div>
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Privacy mode</label>
-          <div className="radio-row">
-            <label>
-              <input type="radio" name="mode" checked onChange={() => {}} /> Real name (Jiyeon Park)
-            </label>
-            <label>
-              <input type="radio" name="mode" checked={false} onChange={() => {}} /> Anonymous
-              pseudonym (e.g. 19902301@bgmail.com — domain still certifies identifiability)
-            </label>
-          </div>
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Certification Authority (bCA)</label>
-          <select className="form-input" value="kt" onChange={() => {}}>
-            <option value="kt">KT Telecom (mobile subscriber verification)</option>
-          </select>
-          <div className="form-hint">
-            The bCA holds your verified identity. The ISP receives only a signed certificate token.
-          </div>
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Backup verification channel</label>
-          <input type="text" className="form-input" value="KakaoTalk: jpark_kr" readOnly />
-          <div className="form-hint">
-            Used by the ISP only when a recipient flags a suspicious mail from your address.
-          </div>
-        </div>
-
-        <div className="form-preview">
-          <span className="form-label">Your bMail address will be</span>
-          <span className="mono" style={{ marginLeft: 12 }}>j.park@bgmail.com</span>
-        </div>
-
-        <div className="reg-form-actions">
-          <button className="btn" onClick={() => setMailboxView('inbox')}>
-            Cancel
-          </button>
-          <button
-            className={`btn btn-primary${submitIsTarget ? ' scenario-target' : ''}`}
-            data-step-target={submitIsTarget ? 's1-form-submit' : undefined}
-            onClick={() => advance('s1-form-submit')}
-            disabled={processing}
-          >
-            Submit registration
-          </button>
-        </div>
-      </div>
-    </Card>
+      <ConfirmRegistrationModal
+        open={showConfirm}
+        onCancel={() => setShowConfirm(false)}
+        onConfirm={handleConfirm}
+        busy={processing}
+      />
+    </>
   );
 }
 
