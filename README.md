@@ -1,17 +1,25 @@
 # bMail ID Infrastructure — Research PoC
 
-논문 *"A Prescriptive Design for Trustworthy Online Identifiers: The bMail ID Approach"* (Lee et al., 2025) 의 4-stakeholder 신원 인프라를 시연용으로 구현한 디자인 사이언스 산출물(executable artifact) 이다.
+An executable design-science artifact for *"A Prescriptive Design for Trustworthy Online Identifiers: The bMail ID Approach"* (Lee et al., 2025). The PoC turns the paper's four-stakeholder identity infrastructure into a guided, click-through demo.
 
-## 시연 시나리오
+**Live demo:** [https://bmail-test-qq4f.vercel.app/](https://bmail-test-qq4f.vercel.app/)
 
-| 시나리오 | 핵심 메시지 |
-|---|---|
-| **S1. Registration** | User → ISP → bCA Zero-copy 인증서 발급. PII 는 bCA 에만 남고 ISP 는 서명 토큰만 보관한다 |
-| **S2. ID-change** | 만료 외부 ID 에서 bMail ID 로 이전, 플랫폼 회원·리뷰 이력은 그대로 보존한다 |
-| **S3. Phishing + Domain portal** | 의심 메일을 백업 채널로 검증하고, 공개 도메인 등록부에서 위조 도메인을 가려낸다 |
-| **S4. Receiver inbox** | 받은 편지함에서 발신자 도메인 기반 신뢰 라벨을 즉시 부착한다 |
+---
 
-## 빠른 실행
+## What you can demonstrate
+
+| Scenario | Steps | What it shows |
+|---|---|---|
+| **S1. Register a bMail ID** | 5 | Zero-copy certificate issuance. Fill out a real registration form, watch the request flow User → ISP → bCA → ISP → User. PII stays at the bCA; the ISP holds only signed JWTs. |
+| **S2. Migrate university email** | 5 | Move an expiring external email (`jpark@univ.edu`) onto a lifelong bMail ID. Marketplace memberships, purchases, and reviews are preserved through a signed change token. |
+| **S3. Phishing + Domain portal** | 3 | Look up a lookalike domain (`bgmail.net`) in the public registry, then verify the suspected sender through the registered backup channel — never via the compromised email. |
+| **S4. Trust labels in the inbox** | 3 | Batch domain lookup attaches per-sender trust labels (`certified`, `suspicious`, `unverified`) to messages already sitting in the inbox. The recipient distinguishes senders at a glance. |
+
+Each scenario is driven by clicking real UI controls in the mockup — a form Submit button, a pending request in an operator console, a Report-phishing button inside an open message. A thin progress bar at the top simulates the network round-trip.
+
+---
+
+## Quickstart (local)
 
 ```bash
 cd poc
@@ -19,9 +27,11 @@ npm install
 npm run dev
 ```
 
-브라우저에서 `http://localhost:5173` 접속 후 우측 하단 시나리오 패널에서 S1 → S4 순으로 실행한다.
+Open `http://localhost:5173`. Pick a scenario from the bottom-right panel. The panel tells you which actor's tab to switch to; the actual button you need to click is outlined inside that view.
 
-## 4-stakeholder 모델
+---
+
+## Four-stakeholder model
 
 ```mermaid
 flowchart LR
@@ -30,67 +40,70 @@ flowchart LR
     C[bCA]
     P[bMember Platform]
 
-    U -- 등록 신청, 신원 응답 --> I
-    I -- 인증 요청 (Zero-copy) --> C
-    C -- 서명 인증서 --> I
-    I -- change token --> P
-    U -- bMail ID 로 회원 가입 --> P
+    U -- registration, identity reply --> I
+    I -- certification request (zero-copy) --> C
+    C -- signed certificate JWT --> I
+    I -- signed change token --> P
+    U -- enroll with bMail ID --> P
 ```
 
-- **User** — bMail ID 등록, 신원 공개 요청 승인, ID 이전 개시
-- **bMail ISP** — 도메인 발급·관리, 도메인 등록부 운영, 토큰 오케스트레이션 (PII 미저장)
-- **bCA (Certification Authority)** — 실제 신원 PII 보관, 서명 인증서 발급
-- **bMember Platform** — change token 검증, 회원 ID 재매핑, 식별 가능 작성자 태그
+- **User** — owns the bMail ID, approves identity disclosures, initiates ID migration.
+- **bMail ISP** — operates the domain registry, issues bMail IDs, orchestrates change tokens. Holds no PII columns.
+- **bCA (Certification Authority)** — holds the real PII (telco subscriber records). Issues signed certificate JWTs without ever transmitting the underlying data.
+- **bMember Platform** — verifies change tokens, remaps member IDs, tags reviews from certified bMail authors as identifiable.
 
-## 저장소 구성
+---
+
+## Repo layout
 
 ```
 4_bmail/
-├── source/        논문 PDF (원본)
-├── prototype/     초기 HTML mock (시각 레퍼런스, 차용하지 않음)
-├── poc/           실제 시연 SPA
-│   ├── src/       컴포넌트·상태·시나리오 정의
-│   └── docs/      시퀀스 다이어그램 (mermaid)
-└── CLAUDE.md      개발 가이드
+├── source/        Original paper PDF
+├── prototype/     Initial HTML mockup (visual reference only)
+├── poc/           Working demo (Vite + React + TS + Zustand)
+│   ├── src/
+│   │   ├── data/        Fixtures (actors, scenarios, domains)
+│   │   ├── state/       Zustand store + scenario runner
+│   │   ├── components/  TrustBadge, PendingRequest, Avatar, ProgressBar, ScenarioPanel
+│   │   └── views/       UserView (mailbox), ISPView, BCAView, PlatformView
+│   └── docs/flows/      Mermaid sequence diagrams for S1–S4
+├── CLAUDE.md      Developer guide
+└── README.md      This file
 ```
 
-## 기술 스택과 설계 결정
+---
 
-- **Vite + React + TypeScript + Zustand** 단일 SPA. 백엔드·데이터베이스·실제 JWT 서명은 의도적으로 포함하지 않는다.
-- **단일 진실 소스** — Zustand 스토어가 4개 액터의 상태를 모두 보관한다. 어느 탭에서 보든 같은 데이터 위에서 본다.
-- **시나리오와 뷰 분리** — 시나리오는 `(num, actor, message, apply)` 스텝 배열로 표현된다. 새 시연을 추가할 때 뷰 코드를 건드리지 않는다.
-- **자유 입력 없음** — 시나리오 버튼만 제공한다. 시연 흐름이 깨지지 않도록 모든 입력값을 fixture 로 고정했다.
+## How it works
 
-## 시연용 가상 데이터 (고정)
+- **No backend.** Every "API call" is a Zustand mutation wrapped in a `setTimeout` so the progress bar can play. Subscriber PII, certificates, change tokens, and phishing reports all live in a single client-side store.
+- **Single source of truth.** Whichever tab you're on, you're reading the same store. The bCA tab keeps subscriber records that the ISP tab provably never touches — that boundary is enforced at the data-model level, not just visually.
+- **Scenarios decoupled from views.** Each scenario step has a `targetId` matching a real UI element. Clicking that element advances the scenario; the same store mutation could be triggered from a different UI element later without touching scenario data.
+- **Fixed fixtures.** One user (Jiyeon Park), one bCA (KT Telecom), one ISP domain (`bgmail.com`), one marketplace (Coupang), plus a single lookalike (`bgmail.net`). All inputs are preset to keep the demo path deterministic.
 
-| 항목 | 값 |
-|---|---|
-| 사용자 | Jiyeon Park (만료 예정 외부 ID `jpark@univ.edu` 보유) |
-| 인증 기관(bCA) | KT Telecom |
-| ISP 도메인 | bgmail.com (정상), bnaver.com (정상), bgmail.net (위조) |
-| 플랫폼 | Coupang (S2 의 ID 이전 대상) |
-| 발급될 bMail ID | j.park@bgmail.com (S1 진행 후) |
+---
 
-## 디자인 원칙
+## Design principles
 
-AI 가 만든 티 없이 깔끔하게 보이도록 다음을 강제한다.
+- One accent color (indigo `#1F2A44`). No coloured badges for status — labels are text.
+- No side navigation, no accent strips, no glow, no gradients. Visual hierarchy comes from type size, weight, and whitespace.
+- Trust labels (`certified`, `suspicious`, `unverified`) are the deliberate exception: they use restrained colour + a small SVG icon for accessibility. Everything else stays monochrome.
+- Top tabs only — never a left sidebar.
 
-- 단일 액센트 색(인디고 `#1F2A44`) 만 사용한다. 상태 표시는 컬러 뱃지가 아닌 텍스트 라벨로 한다.
-- 사이드바와 좌측 보더 강조 표현을 쓰지 않는다. 상단 탭 셸로 통일했다.
-- 이모지, 중간점, 그라데이션, glow 효과를 쓰지 않는다.
-- 시각 위계는 색이 아닌 크기·굵기·여백으로 만든다.
+Detailed design notes and the procedure for adding a fifth scenario are in [CLAUDE.md](CLAUDE.md).
 
-자세한 디자인 가이드와 시나리오 추가 절차는 [CLAUDE.md](CLAUDE.md) 에 있다.
+---
 
-## 더 읽기
+## Further reading
 
-- [개발 가이드](CLAUDE.md)
+- [Developer guide](CLAUDE.md)
 - [PoC quickstart](poc/README.md)
-- [S1 Registration 시퀀스 다이어그램](poc/docs/flows/S1-registration.md)
-- [S2 ID-change 시퀀스 다이어그램](poc/docs/flows/S2-id-change.md)
-- [S3 Phishing + Domain portal 시퀀스 다이어그램](poc/docs/flows/S3-phishing-and-portal.md)
-- [S4 Receiver inbox 시퀀스 다이어그램](poc/docs/flows/S4-inbox.md)
+- [S1 Registration sequence diagram](poc/docs/flows/S1-registration.md)
+- [S2 ID migration sequence diagram](poc/docs/flows/S2-id-change.md)
+- [S3 Phishing + Domain portal sequence diagram](poc/docs/flows/S3-phishing-and-portal.md)
+- [S4 Receiver inbox sequence diagram](poc/docs/flows/S4-inbox.md)
 
-## 참고 논문
+---
 
-Lee, J. K., et al. (2025). *A Prescriptive Design for Trustworthy Online Identifiers: The bMail ID Approach*. (PDF 는 [source/](source/) 폴더 참고)
+## Reference
+
+Lee, J. K., et al. (2025). *A Prescriptive Design for Trustworthy Online Identifiers: The bMail ID Approach*. PDF available under [`source/`](source/).
