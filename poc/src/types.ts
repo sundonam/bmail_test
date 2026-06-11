@@ -90,7 +90,7 @@ export type LogEntry = {
   message: string;
 };
 
-export type ScenarioId = 'S1' | 'S2' | 'S3' | 'S4';
+export type ScenarioId = 'S1' | 'S2' | 'S3' | 'S4' | 'S5';
 
 export type TrustLabel = 'pending' | 'certified' | 'fake' | 'unknown';
 
@@ -100,6 +100,7 @@ export type Email = {
   fromDisplay: string;
   subject: string;
   preview: string;
+  body: string[];
   receivedAt: string;
   trustLabel: TrustLabel;
 };
@@ -116,7 +117,7 @@ export type ScenarioStep = {
   pendingBody?: string;
 };
 
-export type MailboxView = 'inbox' | 'detail' | 'register';
+export type MailboxView = 'inbox' | 'detail' | 'register' | 'compose';
 
 export type DemoState = {
   bca: {

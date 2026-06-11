@@ -6,6 +6,19 @@ const ISSUE_DATE = '2026-06-10';
 const EXPIRY_DATE = '2027-06-10';
 const CERT_JTI = 'cert_kt_2706101a';
 const CHANGE_TOKEN_JTI = 'chg_isp_2706102b';
+const IDENT_CERT_JTI = 'cert_kt_ident_2706103c';
+
+function recordFakeDomain(s: DemoState, domain: string) {
+  if (s.isp.domains.some((d) => d.domain === domain)) return;
+  s.isp.domains.push({
+    domain,
+    baseProvider: 'unknown',
+    caPartners: [],
+    dkimStatus: 'fail',
+    portalListed: false,
+    status: 'fake'
+  });
+}
 
 export const SCENARIOS: Record<
   ScenarioId,
@@ -193,8 +206,10 @@ export const SCENARIOS: Record<
         buttonLabel: 'Look up bgmail.net',
         instruction:
           'In the Public Domain Portal, click bgmail.net to look it up against the registry.',
-        message: 'ISP: bgmail.net queried — not present in domain registry',
-        apply: () => {}
+        message: 'ISP: bgmail.net queried — no registry entry, recorded as lookalike (fake)',
+        apply: (s: DemoState) => {
+          recordFakeDomain(s, 'bgmail.net');
+        }
       },
       {
         num: 2,
@@ -223,8 +238,8 @@ export const SCENARIOS: Record<
         targetId: 's3-user-deny',
         buttonLabel: 'Deny — not my message',
         instruction:
-          'A backup-channel verification request appeared in your mailbox. Deny ownership to confirm phishing.',
-        message: 'User: denied ownership, phishing confirmed',
+          'A KakaoTalk verification request reached the genuine sender. This tab now stands in for their backup channel — deny ownership to confirm phishing.',
+        message: 'Sender (via backup channel): denied ownership, phishing confirmed',
         apply: (s: DemoState) => {
           s.isp.phishingReports = s.isp.phishingReports.map((r) =>
             r.id === 'rep-001' ? { ...r, status: 'phishing-confirmed' } : r
@@ -265,6 +280,8 @@ export const SCENARIOS: Record<
           s.user.inbox = s.user.inbox.map((m) =>
             m.trustLabel === 'pending' ? { ...m, trustLabel: 'fake' } : m
           );
+          recordFakeDomain(s, 'bgmail.net');
+          recordFakeDomain(s, 'bgmail-services.com');
         }
       },
       {
@@ -282,6 +299,82 @@ export const SCENARIOS: Record<
             suspectBmailId: 'support@bgmail.net',
             status: 'verifying',
             createdAt: ISSUE_DATE
+          });
+        }
+      }
+    ]
+  },
+  S5: {
+    title: 'S5. Identification request',
+    desc: 'Receiver-initiated identifiability check, gated by sender approval',
+    steps: [
+      {
+        num: 1,
+        actor: 'platform',
+        targetId: 's5-platform-request',
+        buttonLabel: 'Request sender identification',
+        instruction:
+          'Coupang seller verification needs to confirm the account owner. Submit an identification request to the bMail ISP.',
+        pendingTitle: 'Seller verification — identity confirmation needed',
+        pendingBody:
+          'Member j.park@bgmail.com applied for the high-value seller tier. Ask the bMail ISP whether this sender is genuinely identifiable. The ISP will proceed only with the sender’s own approval.',
+        message: 'Platform → ISP: identification request submitted for j.park@bgmail.com',
+        apply: (s: DemoState) => {
+          s.isp.identificationRequests.push({
+            id: 'idr-001',
+            requester: 'Coupang seller verification',
+            target: BMAIL_ADDRESS,
+            reason: 'High-value seller tier onboarding',
+            status: 'pending'
+          });
+        }
+      },
+      {
+        num: 2,
+        actor: 'isp',
+        targetId: 's5-isp-validate',
+        buttonLabel: 'Validate and notify sender',
+        instruction:
+          'An identification request has arrived. Validate the requester and forward the request to the sender for approval.',
+        pendingTitle: 'Identification request from Coupang',
+        pendingBody:
+          'Requester: Coupang seller verification · Target: j.park@bgmail.com · Reason: high-value seller tier. Identification never proceeds without the sender’s explicit approval.',
+        message: 'ISP: requester validated, sender notified for approval',
+        apply: () => {}
+      },
+      {
+        num: 3,
+        actor: 'user',
+        targetId: 's5-user-approve',
+        buttonLabel: 'Approve identification',
+        instruction:
+          'Coupang asked to confirm your identity for seller onboarding. Approve the identification request.',
+        message: 'User: identification approved — ISP may request a confirmation from the bCA',
+        apply: (s: DemoState) => {
+          s.isp.identificationRequests = s.isp.identificationRequests.map((r) =>
+            r.id === 'idr-001' ? { ...r, status: 'approved' } : r
+          );
+        }
+      },
+      {
+        num: 4,
+        actor: 'bca',
+        targetId: 's5-bca-confirm',
+        buttonLabel: 'Issue identification certificate',
+        instruction:
+          'The sender approved identification. Issue a signed confirmation for the requester — PII stays in this console.',
+        pendingTitle: 'Identification confirmation request',
+        pendingBody:
+          'Sender j.park@bgmail.com approved identification for Coupang seller verification. Issue an Ed25519-signed confirmation. No subscriber data leaves the bCA.',
+        message: 'bCA → Coupang: signed identification certificate delivered (zero-copy)',
+        apply: (s: DemoState) => {
+          s.bca.issuedCertificates.push({
+            jti: IDENT_CERT_JTI,
+            bmailId: BMAIL_ADDRESS,
+            subscriberId: PRIMARY_SUBSCRIBER_ID,
+            mode: 'real',
+            issuedAt: ISSUE_DATE,
+            validUntil: EXPIRY_DATE
           });
         }
       }

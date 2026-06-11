@@ -36,7 +36,7 @@ export function getCurrentStep(scenarioId: ScenarioId | null, stepNum: number) {
 }
 
 function findScenarioStartingWith(targetId: string): ScenarioId | null {
-  const ids: ScenarioId[] = ['S1', 'S2', 'S3', 'S4'];
+  const ids: ScenarioId[] = ['S1', 'S2', 'S3', 'S4', 'S5'];
   for (const id of ids) {
     if (SCENARIOS[id].steps[0].targetId === targetId) return id;
   }

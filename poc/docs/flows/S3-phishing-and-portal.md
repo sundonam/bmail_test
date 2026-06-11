@@ -23,7 +23,7 @@ sequenceDiagram
     I-->>R: 피싱 확정 통지
 ```
 
-백업 채널 알림은 시연 PoC 에서 콘솔 stub 이며, 실제 KakaoTalk/SMS 전송은 구현하지 않는다.
+백업 채널 알림은 시연 PoC 에서 콘솔 stub 이며, 실제 KakaoTalk/SMS 전송은 구현하지 않는다. 시연에서는 Mailbox 탭 상단에 "Backup-channel verification (KakaoTalk)" 토스트가 떠서 진짜 발신자의 메신저 화면을 대신한다 — 의심 메일 자체를 열어 응답하는 구조가 아니다.
 
 ## 도메인 포털 판정 규칙
 

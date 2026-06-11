@@ -8,15 +8,37 @@ export function BCAView() {
 
   return (
     <div className="page">
-      <div className="page-title">KT Telecom — Certification Authority</div>
+      <div className="page-head">
+        <div className="page-title">KT Telecom — Certification Authority</div>
+        <div className="page-meta">cert-ops · KT internal network</div>
+      </div>
       <div className="page-sub">
         Under the zero-copy policy, subscriber PII lives only in this console. The bMail ISP receives
         a signed certificate JWT — never the underlying personal data.
       </div>
 
+      <div className="stat-strip">
+        <div className="stat-block">
+          <div className="stat-value">14,221</div>
+          <div className="stat-label">Certified users (cumulative)</div>
+        </div>
+        <div className="stat-block">
+          <div className="stat-value">{certs.length}</div>
+          <div className="stat-label">Issued this session</div>
+        </div>
+        <div className="stat-block">
+          <div className="stat-value">2</div>
+          <div className="stat-label">ISP partner domains</div>
+        </div>
+        <div className="stat-block">
+          <div className="stat-value">0</div>
+          <div className="stat-label">PII records at ISP</div>
+        </div>
+      </div>
+
       <PendingRequest actor="bca" title="Inbox — pending certifications" />
 
-      <Card title="Subscribers (PII)">
+      <Card title="Subscriber lookup (PII, demo seed)">
         <table className="tbl">
           <thead>
             <tr>

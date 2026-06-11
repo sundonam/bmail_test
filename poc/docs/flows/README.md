@@ -6,5 +6,6 @@
 - [S2. ID-change](S2-id-change.md) — 만료 외부 ID 에서 bMail ID 로 이전, 플랫폼 이력 보존
 - [S3. Phishing + Domain portal](S3-phishing-and-portal.md) — 백업 채널 검증 + 공개 도메인 조회
 - [S4. Receiver inbox](S4-inbox.md) — 받은 편지함에서 발신자 도메인 기반 신뢰 라벨 즉시 부착
+- [S5. Identification request](S5-identification.md) — 수신 측 식별 요청, 발신자 승인 후 bCA 확인서 발급
 
 각 문서는 (a) mermaid 시퀀스 다이어그램, (b) 데이터 경계 또는 보존 규칙 표, (c) 시연 시 강조할 포인트의 3개 섹션으로 구성한다.

@@ -39,7 +39,7 @@ body {
   font-family: var(--font);
   font-size: 14px;
   color: var(--text);
-  background: var(--bg);
+  background: var(--surface);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
@@ -61,16 +61,60 @@ a { color: var(--accent); text-decoration: none; }
   border-bottom: 1px solid var(--border);
   background: var(--bg);
 }
-.topbar-title {
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-right: 32px;
 }
-.topbar-sub {
+.brand-mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.topbar-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+.user-chip .avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 11px;
+}
+.user-chip-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+.user-chip-name {
+  font-size: 12px;
+  font-weight: 600;
+}
+.user-chip-addr {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.footer {
+  padding: 18px 28px 140px;
   font-size: 12px;
   color: var(--text-faint);
-  margin-left: auto;
+  text-align: center;
 }
 .tabs { display: flex; gap: 4px; }
 .tab {
@@ -91,7 +135,7 @@ a { color: var(--accent); text-decoration: none; }
 /* Page */
 .page {
   flex: 1;
-  padding: 32px 28px 140px;
+  padding: 32px 28px;
   max-width: 1100px;
   width: 100%;
   margin: 0 auto;
@@ -106,6 +150,39 @@ a { color: var(--accent); text-decoration: none; }
   font-size: 13px;
   color: var(--text-muted);
   margin-bottom: 24px;
+}
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.page-meta {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+/* Console stat strip */
+.stat-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.stat-block {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+}
+.stat-value {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.stat-label {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 2px;
 }
 
 /* Cards */
@@ -224,6 +301,47 @@ a { color: var(--accent); text-decoration: none; }
 .mailbox-toolbar-left { display: flex; align-items: center; gap: 12px; }
 .mailbox-toolbar-right { display: flex; gap: 8px; }
 .mailbox-toolbar-title { font-size: 14px; font-weight: 600; }
+.mailbox-search {
+  flex: 1;
+  max-width: 420px;
+  margin: 0 16px;
+  padding: 8px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--bg);
+  font-size: 13px;
+  color: var(--text);
+}
+.mailbox-search:focus { outline: none; border-color: var(--accent); }
+
+/* Mail folders */
+.mail-folders {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.mail-folder {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  border-radius: 999px;
+  transition: background 140ms ease, color 140ms ease;
+}
+.mail-folder:hover { background: var(--surface-hover); color: var(--text); }
+.mail-folder.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+.mail-folder-count {
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--mono);
+}
 
 /* Avatar */
 .avatar {
@@ -302,6 +420,7 @@ a { color: var(--accent); text-decoration: none; }
 .mail-detail-from { flex: 1; }
 .mail-detail-from-name { font-size: 13px; font-weight: 600; }
 .mail-detail-from-addr { font-size: 12px; color: var(--text-faint); }
+.mail-detail-to { font-size: 12px; color: var(--text-faint); }
 .mail-detail-time { font-size: 11px; color: var(--text-faint); }
 .mail-detail-trust { margin-top: 10px; }
 .mail-detail-body { padding: 4px 0 20px; font-size: 14px; line-height: 1.7; color: var(--text); }

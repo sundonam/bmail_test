@@ -2,13 +2,13 @@ import { useDemoStore, getCurrentStep } from '../state/store';
 import { SCENARIOS } from '../data/scenarios';
 import type { ActorId, ScenarioId } from '../types';
 
-const IDS: ScenarioId[] = ['S1', 'S2', 'S3', 'S4'];
+const IDS: ScenarioId[] = ['S1', 'S2', 'S3', 'S4', 'S5'];
 
 const ACTOR_NAME: Record<ActorId, string> = {
-  user: 'Mailbox',
-  isp: 'bMail ISP',
+  user: 'Mail',
+  isp: 'ISP Console',
   bca: 'bCA (KT)',
-  platform: 'Marketplace'
+  platform: 'Coupang'
 };
 
 export function ScenarioPanel() {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDemoStore, getCurrentStep } from '../state/store';
 import { Avatar } from '../components/Avatar';
 import { TrustBadge } from '../components/TrustBadge';
@@ -17,35 +17,81 @@ function useAdvance() {
   return useDemoStore((s) => s.advanceScenario);
 }
 
-function MailboxToolbar() {
-  const activeBmailId = useDemoStore((s) => s.user.activeBmailId);
-  const expiring = useDemoStore((s) => s.user.expiringExternalId);
+const TODAY = '2026-06-11';
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function formatMailTime(receivedAt: string): string {
+  const [date, time] = receivedAt.split(' ');
+  if (date === TODAY) return time;
+  const [, month, day] = date.split('-');
+  return `${MONTHS[Number(month) - 1]} ${Number(day)}`;
+}
+
+type MailFolder = 'inbox' | 'sent' | 'archive';
+
+function MailboxToolbar({
+  query,
+  onQueryChange
+}: {
+  query: string;
+  onQueryChange: (q: string) => void;
+}) {
   const setMailboxView = useDemoStore((s) => s.setMailboxView);
   const mailboxView = useDemoStore((s) => s.user.mailboxView);
-  const inbox = useDemoStore((s) => s.user.inbox);
-  const address = activeBmailId ?? expiring ?? 'no address';
-  const unread = inbox.filter((m) => m.trustLabel === 'pending').length;
 
   return (
     <div className="mailbox-toolbar">
       <div className="mailbox-toolbar-left">
-        {mailboxView !== 'inbox' && (
+        {mailboxView === 'inbox' ? (
+          <button className="btn btn-primary" onClick={() => setMailboxView('compose')}>
+            Compose
+          </button>
+        ) : (
           <button className="btn btn-sm" onClick={() => setMailboxView('inbox')}>
             ← Back to inbox
           </button>
         )}
-        <div className="mailbox-toolbar-title">
-          <span className="mono">{address}</span>
-          {mailboxView === 'inbox' && (
-            <span className="muted" style={{ marginLeft: 12, fontSize: 12 }}>
-              {unread} unread
-            </span>
-          )}
-        </div>
       </div>
-      <div className="mailbox-toolbar-right">
-        <button className="btn btn-sm">Refresh</button>
-      </div>
+      {mailboxView === 'inbox' && (
+        <input
+          type="search"
+          className="mailbox-search"
+          placeholder="Search mail"
+          value={query}
+          onChange={(e) => onQueryChange(e.target.value)}
+        />
+      )}
+      <div className="mailbox-toolbar-right" />
+    </div>
+  );
+}
+
+function FolderChips({
+  folder,
+  onFolderChange
+}: {
+  folder: MailFolder;
+  onFolderChange: (f: MailFolder) => void;
+}) {
+  const inbox = useDemoStore((s) => s.user.inbox);
+  const unread = inbox.filter((m) => m.trustLabel === 'pending').length;
+  const folders: { id: MailFolder; label: string; count?: number }[] = [
+    { id: 'inbox', label: 'Inbox', count: unread },
+    { id: 'sent', label: 'Sent' },
+    { id: 'archive', label: 'Archive' }
+  ];
+  return (
+    <div className="mail-folders">
+      {folders.map((f) => (
+        <button
+          key={f.id}
+          className={`mail-folder${folder === f.id ? ' active' : ''}`}
+          onClick={() => onFolderChange(f.id)}
+        >
+          {f.label}
+          {f.count ? <span className="mail-folder-count">{f.count}</span> : null}
+        </button>
+      ))}
     </div>
   );
 }
@@ -107,7 +153,7 @@ function SetupBanner() {
   );
 }
 
-function InboxList() {
+function InboxList({ query, folder }: { query: string; folder: MailFolder }) {
   const inbox = useDemoStore((s) => s.user.inbox);
   const selectEmail = useDemoStore((s) => s.selectEmail);
   const advance = useAdvance();
@@ -121,10 +167,41 @@ function InboxList() {
     }
   }
 
+  if (folder !== 'inbox') {
+    return (
+      <Card>
+        <div className="faint" style={{ fontSize: 13, padding: '24px 0', textAlign: 'center' }}>
+          {folder === 'sent' ? 'No sent mail.' : 'No archived mail.'}
+        </div>
+      </Card>
+    );
+  }
+
+  const q = query.trim().toLowerCase();
+  const rows = q
+    ? inbox.filter(
+        (m) =>
+          m.fromDisplay.toLowerCase().includes(q) ||
+          m.from.toLowerCase().includes(q) ||
+          m.subject.toLowerCase().includes(q) ||
+          m.preview.toLowerCase().includes(q)
+      )
+    : inbox;
+
+  if (rows.length === 0) {
+    return (
+      <Card>
+        <div className="faint" style={{ fontSize: 13, padding: '24px 0', textAlign: 'center' }}>
+          No messages match &quot;{query}&quot;.
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <div className="mail-list">
-        {inbox.map((m) => {
+        {rows.map((m) => {
           const isUnread = m.trustLabel === 'pending';
           const isTarget = targetId === 's4-user-open' && m.id === 'mail-002';
           return (
@@ -139,7 +216,7 @@ function InboxList() {
               <div className="mail-list-body">
                 <div className="mail-list-top">
                   <span className="mail-list-from">{m.fromDisplay}</span>
-                  <span className="mail-list-time">{m.receivedAt}</span>
+                  <span className="mail-list-time">{formatMailTime(m.receivedAt)}</span>
                 </div>
                 <div className="mail-list-subject">{m.subject}</div>
                 <div className="mail-list-preview">{m.preview}</div>
@@ -164,13 +241,13 @@ function MailDetail() {
   const processing = useDemoStore((s) => s.processing);
   const mail = inbox.find((m) => m.id === selectedId);
 
-  if (!mail) {
-    setMailboxView('inbox');
-    return null;
-  }
+  useEffect(() => {
+    if (!mail) setMailboxView('inbox');
+  }, [mail, setMailboxView]);
+
+  if (!mail) return null;
 
   const reportIsTarget = targetId === 's4-user-report' && mail.id === 'mail-002';
-  const denyIsTarget = targetId === 's3-user-deny' && mail.id === 'mail-002';
 
   return (
     <Card>
@@ -182,6 +259,7 @@ function MailDetail() {
             <div className="mail-detail-from">
               <div className="mail-detail-from-name">{mail.fromDisplay}</div>
               <div className="mail-detail-from-addr mono">{mail.from}</div>
+              <div className="mail-detail-to">to me</div>
             </div>
             <div className="mail-detail-time mono">{mail.receivedAt}</div>
           </div>
@@ -190,17 +268,16 @@ function MailDetail() {
           </div>
         </div>
         <div className="mail-detail-body">
-          <p>{mail.preview}</p>
-          <p style={{ marginTop: 12 }}>
-            {mail.from === 'support@bgmail.net'
-              ? 'Click the link below to verify your account. Failure to act within 24 hours will result in suspension.'
-              : mail.from === 'prof.lee@bgmail.com'
-                ? 'Best, Hyunwoo'
-                : 'Office of the Registrar, Graduate Affairs Division'}
-          </p>
+          {mail.body.map((p, i) => (
+            <p key={i} style={i > 0 ? { marginTop: 12 } : undefined}>
+              {p}
+            </p>
+          ))}
         </div>
         <div className="mail-detail-actions">
           <button className="btn">Reply</button>
+          <button className="btn">Forward</button>
+          <button className="btn">Archive</button>
           <button
             className={`btn${reportIsTarget ? ' btn-primary scenario-target' : ''}`}
             data-step-target={reportIsTarget ? 's4-user-report' : undefined}
@@ -209,16 +286,46 @@ function MailDetail() {
           >
             Report phishing
           </button>
-          {denyIsTarget && (
-            <button
-              className="btn btn-primary scenario-target"
-              data-step-target="s3-user-deny"
-              onClick={() => advance('s3-user-deny')}
-              disabled={processing}
-            >
-              Deny — not my message
-            </button>
-          )}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function ComposeView() {
+  const setMailboxView = useDemoStore((s) => s.setMailboxView);
+  const activeBmailId = useDemoStore((s) => s.user.activeBmailId);
+  const expiring = useDemoStore((s) => s.user.expiringExternalId);
+  const fromAddress = activeBmailId ?? expiring ?? '';
+
+  return (
+    <Card>
+      <div className="reg-form">
+        <div className="reg-form-header">
+          <div className="reg-form-title">New message</div>
+          <div className="reg-form-sub mono">from {fromAddress}</div>
+        </div>
+        <div className="form-group">
+          <label className="form-label">To</label>
+          <input type="text" className="form-input" placeholder="Recipients" />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Subject</label>
+          <input type="text" className="form-input" placeholder="Subject" />
+        </div>
+        <div className="form-group">
+          <textarea className="form-input" rows={9} placeholder="Write your message" />
+        </div>
+        <div className="reg-form-actions">
+          <button className="btn" onClick={() => setMailboxView('inbox')}>
+            Discard
+          </button>
+          <button className="btn btn-primary" disabled title="Outbound mail is simulated in this demo">
+            Send
+          </button>
+        </div>
+        <div className="form-hint" style={{ marginTop: 8, textAlign: 'right' }}>
+          Sending is outside the scope of this demo build.
         </div>
       </div>
     </Card>
@@ -231,12 +338,13 @@ function RegistrationForm() {
   const targetId = useCurrentStepTargetId();
   const processing = useDemoStore((s) => s.processing);
   const completed = useDemoStore((s) => s.scenario.completed);
-  const [name, setName] = useState('j.park');
+  const registered = completed.includes('S1');
 
-  if (completed.includes('S1')) {
-    setMailboxView('inbox');
-    return null;
-  }
+  useEffect(() => {
+    if (registered) setMailboxView('inbox');
+  }, [registered, setMailboxView]);
+
+  if (registered) return null;
 
   const submitIsTarget = targetId === 's1-form-submit';
 
@@ -253,18 +361,12 @@ function RegistrationForm() {
 
         <div className="form-group">
           <label className="form-label">Email name</label>
-          <input
-            type="text"
-            className="form-input"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. j.park"
-          />
+          <input type="text" className="form-input" value="j.park" readOnly />
         </div>
 
         <div className="form-group">
           <label className="form-label">Domain</label>
-          <select className="form-input" defaultValue="bgmail.com">
+          <select className="form-input" value="bgmail.com" onChange={() => {}}>
             <option value="bgmail.com">bgmail.com (Gmail-backed, KT-certified)</option>
             <option value="bnaver.com">bnaver.com (Naver-backed, KT-certified)</option>
           </select>
@@ -275,17 +377,18 @@ function RegistrationForm() {
           <label className="form-label">Privacy mode</label>
           <div className="radio-row">
             <label>
-              <input type="radio" name="mode" defaultChecked /> Real name (Jiyeon Park)
+              <input type="radio" name="mode" checked onChange={() => {}} /> Real name (Jiyeon Park)
             </label>
             <label>
-              <input type="radio" name="mode" /> Anonymous pseudonym
+              <input type="radio" name="mode" checked={false} onChange={() => {}} /> Anonymous
+              pseudonym (e.g. 19902301@bgmail.com — domain still certifies identifiability)
             </label>
           </div>
         </div>
 
         <div className="form-group">
           <label className="form-label">Certification Authority (bCA)</label>
-          <select className="form-input" defaultValue="kt">
+          <select className="form-input" value="kt" onChange={() => {}}>
             <option value="kt">KT Telecom (mobile subscriber verification)</option>
           </select>
           <div className="form-hint">
@@ -295,7 +398,7 @@ function RegistrationForm() {
 
         <div className="form-group">
           <label className="form-label">Backup verification channel</label>
-          <input type="text" className="form-input" defaultValue="KakaoTalk: jpark_kr" />
+          <input type="text" className="form-input" value="KakaoTalk: jpark_kr" readOnly />
           <div className="form-hint">
             Used by the ISP only when a recipient flags a suspicious mail from your address.
           </div>
@@ -303,7 +406,7 @@ function RegistrationForm() {
 
         <div className="form-preview">
           <span className="form-label">Your bMail address will be</span>
-          <span className="mono" style={{ marginLeft: 12 }}>{name}@bgmail.com</span>
+          <span className="mono" style={{ marginLeft: 12 }}>j.park@bgmail.com</span>
         </div>
 
         <div className="reg-form-actions">
@@ -338,7 +441,7 @@ function ActivationToast() {
         </div>
         <div className="toast-desc">
           {isS2
-            ? 'Your marketplace memberships have moved to j.park@bgmail.com. Reviews are now tagged as identifiable.'
+            ? 'Your marketplace memberships have moved to j.park@bgmail.com. Reviews are now tagged as identifiable. Like an ORCID iD, the bMail ID persists across institutional changes.'
             : 'j.park@bgmail.com is ready. The bgmail.com domain signals lifelong identifiability at the transport layer.'}
         </div>
       </div>
@@ -349,6 +452,59 @@ function ActivationToast() {
         disabled={processing}
       >
         Got it
+      </button>
+    </div>
+  );
+}
+
+function BackupChannelToast() {
+  const advance = useAdvance();
+  const targetId = useCurrentStepTargetId();
+  const processing = useDemoStore((s) => s.processing);
+  if (targetId !== 's3-user-deny') return null;
+  return (
+    <div className="toast">
+      <div className="toast-body">
+        <div className="toast-title">Backup-channel verification (KakaoTalk)</div>
+        <div className="toast-desc">
+          bMail ISP to the genuine sender: a recipient reported a suspicious message sent as
+          h.lee@bgmail.net. Did you send it? This view stands in for the sender&apos;s messenger —
+          the suspect email address is never used for verification.
+        </div>
+      </div>
+      <button
+        className="btn btn-primary scenario-target"
+        data-step-target="s3-user-deny"
+        onClick={() => advance('s3-user-deny')}
+        disabled={processing}
+      >
+        Deny — not my message
+      </button>
+    </div>
+  );
+}
+
+function IdentApprovalToast() {
+  const advance = useAdvance();
+  const targetId = useCurrentStepTargetId();
+  const processing = useDemoStore((s) => s.processing);
+  if (targetId !== 's5-user-approve') return null;
+  return (
+    <div className="toast">
+      <div className="toast-body">
+        <div className="toast-title">Identification request</div>
+        <div className="toast-desc">
+          Coupang seller verification asks to confirm your identity for the high-value seller tier.
+          If you approve, the bCA issues a signed confirmation — your personal data stays at KT.
+        </div>
+      </div>
+      <button
+        className="btn btn-primary scenario-target"
+        data-step-target="s5-user-approve"
+        onClick={() => advance('s5-user-approve')}
+        disabled={processing}
+      >
+        Approve identification
       </button>
     </div>
   );
@@ -392,22 +548,28 @@ function AccountStrip() {
 
 export function UserView() {
   const mailboxView = useDemoStore((s) => s.user.mailboxView);
+  const [query, setQuery] = useState('');
+  const [folder, setFolder] = useState<MailFolder>('inbox');
 
   return (
     <div className="page mailbox-page">
-      <MailboxToolbar />
+      <MailboxToolbar query={query} onQueryChange={setQuery} />
       <ActivationToast />
+      <BackupChannelToast />
+      <IdentApprovalToast />
 
       {mailboxView === 'inbox' && (
         <>
           <SetupBanner />
           <MigrationBanner />
-          <InboxList />
+          <FolderChips folder={folder} onFolderChange={setFolder} />
+          <InboxList query={query} folder={folder} />
           <AccountStrip />
         </>
       )}
       {mailboxView === 'detail' && <MailDetail />}
       {mailboxView === 'register' && <RegistrationForm />}
+      {mailboxView === 'compose' && <ComposeView />}
     </div>
   );
 }
