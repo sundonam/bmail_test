@@ -17,6 +17,15 @@
   --trust-unknown-bg: #f1efe8;
   --trust-unknown-text: #5f5e5a;
 
+  --status-healthy: #176b3f;
+  --status-healthy-bg: #e7f3ec;
+  --status-warning: #a86a17;
+  --status-warning-bg: #faedd6;
+  --status-danger: #a02828;
+  --status-danger-bg: #fbedea;
+  --status-info: #1f2a44;
+  --status-info-bg: #ebedf3;
+
   --radius: 6px;
   --pad: 16px;
   --pad-sm: 10px;
@@ -459,3 +468,146 @@ a { color: var(--accent); text-decoration: none; }
 .scenario-step-num { font-family: var(--mono); width: 16px; text-align: right; }
 
 .section-gap { height: 24px; }
+
+/* Dashboard */
+.dashboard-page .page-sub { margin-bottom: 20px; }
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.kpi-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+.kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+.kpi-value {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.kpi-delta {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Status dots and alert rows (color exception, restrained palette) */
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.status-healthy { background: var(--status-healthy); }
+.status-warning { background: var(--status-warning); }
+.status-danger { background: var(--status-danger); }
+.status-info { background: var(--status-info); }
+
+.alert-list { display: flex; flex-direction: column; gap: 8px; }
+.alert-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+.alert-row.alert-healthy { border-color: var(--status-healthy-bg); background: var(--status-healthy-bg); }
+.alert-row.alert-warning { border-color: var(--status-warning-bg); background: var(--status-warning-bg); }
+.alert-row.alert-danger { border-color: var(--status-danger-bg); background: var(--status-danger-bg); }
+.alert-row.alert-info { border-color: var(--status-info-bg); background: var(--status-info-bg); }
+.alert-body { flex: 1; }
+.alert-title { font-size: 13px; font-weight: 600; }
+.alert-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.alert-count {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  min-width: 22px;
+  text-align: right;
+}
+
+/* Scenario progress squares */
+.scenario-progress { margin-bottom: 12px; }
+.scenario-progress-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+.scenario-progress-label .faint { text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 11px; }
+.scenario-progress-squares { display: flex; gap: 4px; }
+.progress-square {
+  width: 18px;
+  height: 12px;
+  border: 1.5px solid var(--accent);
+  background: var(--bg);
+  border-radius: 2px;
+}
+.progress-square.filled { background: var(--accent); }
+.progress-square.current { background: var(--accent); }
+
+/* Scenario actor flow */
+.scenario-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 12px;
+}
+.scenario-flow-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+  min-width: 0;
+  text-align: center;
+}
+.scenario-flow-step-name { font-weight: 600; }
+.scenario-flow-step-label { font-size: 11px; color: var(--text-faint); margin-top: 1px; }
+.scenario-flow-step.current {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.scenario-flow-step.current .scenario-flow-step-label { color: var(--accent); }
+.scenario-flow-step.done {
+  color: var(--text-faint);
+}
+.scenario-flow-step.done .scenario-flow-step-label { text-decoration: line-through; }
+.scenario-flow-arrow {
+  font-size: 11px;
+  color: var(--text-faint);
+  line-height: 1;
+  padding: 2px 0;
+}
+
+.scenario-divider {
+  border-top: 1px solid var(--border);
+  margin: 12px 0;
+}

@@ -1,14 +1,12 @@
 import { create } from 'zustand';
-import type { ActorId, DemoState, MailboxView, ScenarioId } from '../types';
+import type { AppTab, DemoState, MailboxView, ScenarioId } from '../types';
 import { initialState } from '../data/actors';
 import { SCENARIOS } from '../data/scenarios';
 
-type Tab = ActorId;
-
 type StoreActions = {
-  activeTab: Tab;
+  activeTab: AppTab;
   processing: boolean;
-  setActiveTab: (t: Tab) => void;
+  setActiveTab: (t: AppTab) => void;
   setMailboxView: (v: MailboxView) => void;
   selectEmail: (id: string | null) => void;
   startScenario: (id: ScenarioId) => void;
@@ -49,7 +47,7 @@ const PROCESS_DELAY_MS = 700;
 
 export const useDemoStore = create<Store>((set, get) => ({
   ...clone(initialState),
-  activeTab: 'user',
+  activeTab: 'dashboard',
   processing: false,
   setActiveTab: (t) => set({ activeTab: t }),
   setMailboxView: (v) => set((s) => ({ user: { ...s.user, mailboxView: v } })),

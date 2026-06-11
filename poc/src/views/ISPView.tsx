@@ -1,7 +1,6 @@
 import { useDemoStore, getCurrentStep } from '../state/store';
 import { Card } from '../components/Card';
 import { Field } from '../components/Field';
-import { EventLog } from '../components/EventLog';
 import { PendingRequest } from '../components/PendingRequest';
 import { DOMAIN_LOOKUPS } from '../data/domains';
 
@@ -170,9 +169,6 @@ export function ISPView() {
         </Card>
       </div>
 
-      <Card title="Events">
-        <EventLog actorFilter="isp" />
-      </Card>
     </div>
   );
 }

@@ -256,18 +256,15 @@ export const SCENARIOS: Record<
         targetId: 's4-isp-sync',
         buttonLabel: 'Sync sender trust labels',
         instruction:
-          'Run a batch domain lookup for the three sender domains and propagate trust labels to the inbox.',
+          'Run a batch domain lookup for the recently-arrived sender domains and propagate trust labels to the inbox.',
         pendingTitle: 'Batch trust-label sync request',
         pendingBody:
-          'Mail client requested trust labels for prof.lee@bgmail.com, support@bgmail.net, and notice@univ.edu. Apply registry verdicts.',
-        message: 'Mail client → ISP: batch sync verdicts (certified, fake, unknown)',
+          'Mail client requested registry verdicts for the unlabelled senders (bgmail.net and bgmail-services.com). Apply lookalike-fake labels.',
+        message: 'Mail client → ISP: batch sync verdicts applied to pending messages',
         apply: (s: DemoState) => {
-          s.user.inbox = s.user.inbox.map((m) => {
-            if (m.from === 'prof.lee@bgmail.com') return { ...m, trustLabel: 'certified' };
-            if (m.from === 'support@bgmail.net') return { ...m, trustLabel: 'fake' };
-            if (m.from === 'notice@univ.edu') return { ...m, trustLabel: 'unknown' };
-            return m;
-          });
+          s.user.inbox = s.user.inbox.map((m) =>
+            m.trustLabel === 'pending' ? { ...m, trustLabel: 'fake' } : m
+          );
         }
       },
       {

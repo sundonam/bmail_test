@@ -1,13 +1,15 @@
 import { useDemoStore } from './state/store';
+import { DashboardView } from './views/DashboardView';
 import { UserView } from './views/UserView';
 import { ISPView } from './views/ISPView';
 import { BCAView } from './views/BCAView';
 import { PlatformView } from './views/PlatformView';
 import { ScenarioPanel } from './components/ScenarioPanel';
 import { ProgressBar } from './components/ProgressBar';
-import type { ActorId } from './types';
+import type { AppTab } from './types';
 
-const TABS: { id: ActorId; label: string }[] = [
+const TABS: { id: AppTab; label: string }[] = [
+  { id: 'dashboard', label: 'Dashboard' },
   { id: 'user', label: 'Mailbox' },
   { id: 'isp', label: 'bMail ISP' },
   { id: 'bca', label: 'bCA (KT)' },
@@ -37,6 +39,7 @@ function App() {
         <div className="topbar-sub">Lee et al. (2025) — Research PoC</div>
       </header>
 
+      {activeTab === 'dashboard' && <DashboardView />}
       {activeTab === 'user' && <UserView />}
       {activeTab === 'isp' && <ISPView />}
       {activeTab === 'bca' && <BCAView />}

@@ -64,16 +64,60 @@ export function ScenarioPanel() {
         )}
         {current && step && (
           <div className="scenario-guide">
-            <div className="scenario-guide-meta">
-              {current} · Step {step.num} of {SCENARIOS[current].steps.length}
+            <div className="scenario-guide-meta">{SCENARIOS[current].title}</div>
+
+            <div className="scenario-progress">
+              <div className="scenario-progress-label">
+                Progress
+                <span className="faint">
+                  Step {step.num} / {SCENARIOS[current].steps.length}
+                </span>
+              </div>
+              <div className="scenario-progress-squares">
+                {SCENARIOS[current].steps.map((s) => (
+                  <span
+                    key={s.num}
+                    className={`progress-square${s.num < step.num ? ' filled' : ''}${
+                      s.num === step.num ? ' current' : ''
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
-            <div className="scenario-guide-title">{SCENARIOS[current].title}</div>
+
+            <div className="scenario-flow">
+              {SCENARIOS[current].steps.map((s, i) => {
+                const isDone = s.num < step.num;
+                const isCurrent = s.num === step.num;
+                return (
+                  <div key={s.num}>
+                    <div
+                      className={`scenario-flow-step${isCurrent ? ' current' : ''}${
+                        isDone ? ' done' : ''
+                      }`}
+                    >
+                      <span className="scenario-flow-step-name">{ACTOR_NAME[s.actor]}</span>
+                      <span className="scenario-flow-step-label">{s.buttonLabel}</span>
+                    </div>
+                    {i < SCENARIOS[current].steps.length - 1 && (
+                      <div className="scenario-flow-arrow">↓</div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="scenario-divider" />
+
             {!onCorrectTab ? (
               <>
                 <div className="scenario-guide-instruction">
                   Switch to the <strong>{ACTOR_NAME[step.actor]}</strong> tab to continue.
                 </div>
-                <button className="btn btn-primary" onClick={() => setActiveTab(step.actor)}>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => setActiveTab(step.actor)}
+                >
                   Go to {ACTOR_NAME[step.actor]}
                 </button>
               </>
@@ -81,25 +125,10 @@ export function ScenarioPanel() {
               <div className="scenario-guide-instruction">
                 {step.instruction}
                 <div className="scenario-guide-hint">
-                  Look for the highlighted control in the {ACTOR_NAME[step.actor]} view.
+                  Look for the highlighted control on this view.
                 </div>
               </div>
             )}
-            <div className="scenario-steps-list">
-              {SCENARIOS[current].steps.map((s) => (
-                <div
-                  key={s.num}
-                  className={`scenario-step${s.num === step.num ? ' current' : ''}${
-                    s.num < step.num ? ' done' : ''
-                  }`}
-                >
-                  <span className="scenario-step-num">{s.num}.</span>
-                  <span>
-                    <span className="faint">[{ACTOR_NAME[s.actor]}]</span> {s.buttonLabel}
-                  </span>
-                </div>
-              ))}
-            </div>
           </div>
         )}
       </div>

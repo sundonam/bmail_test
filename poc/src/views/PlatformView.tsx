@@ -1,6 +1,5 @@
 import { useDemoStore } from '../state/store';
 import { Card } from '../components/Card';
-import { EventLog } from '../components/EventLog';
 import { PendingRequest } from '../components/PendingRequest';
 
 export function PlatformView() {
@@ -61,9 +60,6 @@ export function PlatformView() {
         ))}
       </Card>
 
-      <Card title="Events">
-        <EventLog actorFilter="platform" />
-      </Card>
     </div>
   );
 }

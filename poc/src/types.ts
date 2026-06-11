@@ -1,5 +1,7 @@
 export type ActorId = 'user' | 'isp' | 'bca' | 'platform';
 
+export type AppTab = 'dashboard' | ActorId;
+
 export type Subscriber = {
   id: string;
   fullName: string;

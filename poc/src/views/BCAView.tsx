@@ -1,6 +1,5 @@
 import { useDemoStore } from '../state/store';
 import { Card } from '../components/Card';
-import { EventLog } from '../components/EventLog';
 import { PendingRequest } from '../components/PendingRequest';
 
 export function BCAView() {
@@ -77,9 +76,6 @@ export function BCAView() {
         )}
       </Card>
 
-      <Card title="Events">
-        <EventLog actorFilter="bca" />
-      </Card>
     </div>
   );
 }

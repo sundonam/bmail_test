@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useDemoStore, getCurrentStep } from '../state/store';
 import { Avatar } from '../components/Avatar';
 import { TrustBadge } from '../components/TrustBadge';
-import { EventLog } from '../components/EventLog';
 import { Card } from '../components/Card';
 import { Field } from '../components/Field';
 import type { Email } from '../types';
@@ -405,9 +404,6 @@ export function UserView() {
           <MigrationBanner />
           <InboxList />
           <AccountStrip />
-          <Card title="Events">
-            <EventLog actorFilter="user" />
-          </Card>
         </>
       )}
       {mailboxView === 'detail' && <MailDetail />}
