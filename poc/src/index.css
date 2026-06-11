@@ -842,6 +842,7 @@ a { color: var(--accent); text-decoration: none; }
   color: var(--text-faint);
   line-height: 1;
   padding: 2px 0;
+  text-align: center;
 }
 
 .scenario-divider {
