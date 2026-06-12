@@ -27,14 +27,31 @@ function formatMailTime(receivedAt: string): string {
   return `${MONTHS[Number(month) - 1]} ${Number(day)}`;
 }
 
-type MailFolder = 'inbox' | 'sent' | 'archive';
+type MailFolder = 'inbox' | 'sent' | 'archive' | 'settings';
+
+function RefreshIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <path
+        d="M13.2 8a5.2 5.2 0 1 1-1.6-3.76"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        fill="none"
+      />
+      <path d="M13.4 1.8v3h-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    </svg>
+  );
+}
 
 function MailboxToolbar({
   query,
-  onQueryChange
+  onQueryChange,
+  visibleCount
 }: {
   query: string;
   onQueryChange: (q: string) => void;
+  visibleCount: number;
 }) {
   const setMailboxView = useDemoStore((s) => s.setMailboxView);
   const mailboxView = useDemoStore((s) => s.user.mailboxView);
@@ -61,7 +78,18 @@ function MailboxToolbar({
           onChange={(e) => onQueryChange(e.target.value)}
         />
       )}
-      <div className="mailbox-toolbar-right" />
+      <div className="mailbox-toolbar-right">
+        {mailboxView === 'inbox' && (
+          <>
+            <button className="icon-btn" title="Refresh" aria-label="Refresh">
+              <RefreshIcon />
+            </button>
+            <span className="mailbox-counter">
+              {visibleCount === 0 ? '0 of 0' : `1–${visibleCount} of ${visibleCount}`}
+            </span>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -78,7 +106,8 @@ function FolderChips({
   const folders: { id: MailFolder; label: string; count?: number }[] = [
     { id: 'inbox', label: 'Inbox', count: unread },
     { id: 'sent', label: 'Sent' },
-    { id: 'archive', label: 'Archive' }
+    { id: 'archive', label: 'Archive' },
+    { id: 'settings', label: 'Account settings' }
   ];
   return (
     <div className="mail-folders">
@@ -167,7 +196,7 @@ function InboxList({ query, folder }: { query: string; folder: MailFolder }) {
     }
   }
 
-  if (folder !== 'inbox') {
+  if (folder === 'sent' || folder === 'archive') {
     return (
       <Card>
         <div className="faint" style={{ fontSize: 13, padding: '24px 0', textAlign: 'center' }}>
@@ -212,23 +241,46 @@ function InboxList({ query, folder }: { query: string; folder: MailFolder }) {
               }`}
               onClick={() => handleClick(m)}
             >
-              <Avatar name={m.fromDisplay} />
-              <div className="mail-list-body">
-                <div className="mail-list-top">
-                  <span className="mail-list-from">{m.fromDisplay}</span>
-                  <span className="mail-list-time">{formatMailTime(m.receivedAt)}</span>
-                </div>
-                <div className="mail-list-subject">{m.subject}</div>
-                <div className="mail-list-preview">{m.preview}</div>
-                <div className="mail-list-trust">
-                  <TrustBadge label={m.trustLabel} />
-                </div>
-              </div>
+              <span className="mail-list-from">{m.fromDisplay}</span>
+              <TrustBadge label={m.trustLabel} small />
+              <span className="mail-list-line">
+                <span className="mail-line-subject">{m.subject}</span>
+                <span className="mail-line-preview"> — {m.preview}</span>
+              </span>
+              <span className="mail-list-time">{formatMailTime(m.receivedAt)}</span>
             </div>
           );
         })}
       </div>
     </Card>
+  );
+}
+
+function senderDomain(address: string): string {
+  return address.split('@')[1] ?? address;
+}
+
+function SecurityMeta({ from, trustLabel }: { from: string; trustLabel: Email['trustLabel'] }) {
+  const domain = senderDomain(from);
+  const signedBy =
+    trustLabel === 'certified'
+      ? `${domain}, DKIM pass, KT-attested`
+      : trustLabel === 'fake'
+        ? 'none — domain absent from bMail registry'
+        : trustLabel === 'unknown'
+          ? `${domain}, outside the bMail registry`
+          : 'registry verdict pending';
+  return (
+    <div className="mail-detail-security">
+      <span>
+        <span className="sec-label">mailed-by</span>
+        <span className="mono">{domain}</span>
+      </span>
+      <span>
+        <span className="sec-label">signed-by</span>
+        {signedBy}
+      </span>
+    </div>
   );
 }
 
@@ -265,6 +317,7 @@ function MailDetail() {
           </div>
           <div className="mail-detail-trust">
             <TrustBadge label={mail.trustLabel} />
+            <SecurityMeta from={mail.from} trustLabel={mail.trustLabel} />
           </div>
         </div>
         <div className="mail-detail-body">
@@ -706,12 +759,13 @@ function AccountStrip() {
 
 export function UserView() {
   const mailboxView = useDemoStore((s) => s.user.mailboxView);
+  const inboxCount = useDemoStore((s) => s.user.inbox.length);
   const [query, setQuery] = useState('');
   const [folder, setFolder] = useState<MailFolder>('inbox');
 
   return (
     <div className="page mailbox-page">
-      <MailboxToolbar query={query} onQueryChange={setQuery} />
+      <MailboxToolbar query={query} onQueryChange={setQuery} visibleCount={inboxCount} />
       <ActivationToast />
       <BackupChannelToast />
       <IdentApprovalToast />
@@ -721,8 +775,7 @@ export function UserView() {
           <SetupBanner />
           <MigrationBanner />
           <FolderChips folder={folder} onFolderChange={setFolder} />
-          <InboxList query={query} folder={folder} />
-          <AccountStrip />
+          {folder === 'settings' ? <AccountStrip /> : <InboxList query={query} folder={folder} />}
         </>
       )}
       {mailboxView === 'detail' && <MailDetail />}

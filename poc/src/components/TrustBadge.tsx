@@ -75,9 +75,9 @@ function PendingIcon() {
   );
 }
 
-type Props = { label: TrustLabel };
+type Props = { label: TrustLabel; small?: boolean };
 
-export function TrustBadge({ label }: Props) {
+export function TrustBadge({ label, small }: Props) {
   const copy = COPY[label];
   const Icon =
     label === 'certified'
@@ -88,7 +88,10 @@ export function TrustBadge({ label }: Props) {
           ? QuestionIcon
           : PendingIcon;
   return (
-    <span className={`trust-badge trust-${label}`} title={copy.tooltip}>
+    <span
+      className={`trust-badge trust-${label}${small ? ' trust-badge-sm' : ''}`}
+      title={copy.tooltip}
+    >
       <span className="trust-icon">
         <Icon />
       </span>

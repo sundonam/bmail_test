@@ -114,6 +114,10 @@ export function ISPView() {
       </Card>
 
       <Card title="Domain registry">
+        <div className="muted" style={{ fontSize: 12, marginBottom: 10 }}>
+          Snapshot synced 2026-06-11 09:00 KST from CA partner feeds, {domains.length} domains
+          on record.
+        </div>
         <table className="tbl">
           <thead>
             <tr>

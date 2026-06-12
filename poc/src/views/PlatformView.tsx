@@ -3,6 +3,14 @@ import { Card } from '../components/Card';
 import { Field } from '../components/Field';
 import { PendingRequest } from '../components/PendingRequest';
 
+const CERTIFIED_MEMBER_DOMAINS = ['bgmail.com', 'bnaver.com'];
+
+function memberTier(bmailId: string): string {
+  return CERTIFIED_MEMBER_DOMAINS.some((d) => bmailId.endsWith(`@${d}`))
+    ? 'bMember'
+    : 'standard';
+}
+
 export function PlatformView() {
   const members = useDemoStore((s) => s.platform.members);
   const reviews = useDemoStore((s) => s.platform.reviews);
@@ -48,6 +56,7 @@ export function PlatformView() {
             <tr>
               <th>Member ID</th>
               <th>Current bMail / external ID</th>
+              <th>Tier</th>
               <th>Joined</th>
               <th>Purchases</th>
               <th>Reviews</th>
@@ -58,6 +67,7 @@ export function PlatformView() {
               <tr key={m.platformMemberId}>
                 <td className="mono">{m.platformMemberId}</td>
                 <td className="mono">{m.bmailId}</td>
+                <td>{memberTier(m.bmailId)}</td>
                 <td>{m.joinedAt}</td>
                 <td>{m.purchaseCount}</td>
                 <td>{m.reviewCount}</td>
@@ -65,22 +75,25 @@ export function PlatformView() {
             ))}
           </tbody>
         </table>
+        <div className="tbl-caption">
+          Tier follows the registered ID: addresses on a bMail-certified domain qualify as bMember.
+        </div>
       </Card>
 
-      <Card title="Review trust layer">
+      <Card title="Product reviews — trust layer">
         {reviews.map((r) => (
-          <div
-            key={r.id}
-            style={{ padding: '10px 0', borderBottom: '1px solid var(--border)' }}
-          >
-            <div style={{ fontSize: 12, color: 'var(--text-faint)', marginBottom: 4 }}>
+          <div key={r.id} className="review-item">
+            <div className="review-product">{r.product}</div>
+            <div className="review-meta">
+              <span className="review-rating">Rating {r.rating.toFixed(1)} of 5</span>
               <span className="mono">{r.memberId}</span>
-              <span style={{ margin: '0 8px' }}>—</span>
               <span>{r.postedAt}</span>
-              <span style={{ margin: '0 8px' }}>—</span>
-              <span>{r.identifiable ? 'Identifiable author' : 'Unverified author'}</span>
+              <span className="review-author-tag">
+                {r.identifiable ? 'Identifiable author, verified purchase' : 'Unverified author'}
+              </span>
             </div>
-            <div style={{ fontSize: 13 }}>{r.content}</div>
+            <div className="review-content">{r.content}</div>
+            <div className="review-helpful">{r.helpfulCount} people found this review helpful</div>
           </div>
         ))}
       </Card>

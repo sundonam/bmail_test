@@ -79,6 +79,9 @@ export type Member = {
 export type Review = {
   id: string;
   memberId: string;
+  product: string;
+  rating: number;
+  helpfulCount: number;
   content: string;
   identifiable: boolean;
   postedAt: string;

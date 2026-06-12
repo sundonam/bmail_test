@@ -63,7 +63,8 @@ export function BCAView() {
         </table>
         <div className="muted" style={{ fontSize: 12, marginTop: 10 }}>
           None of these columns appear in the bMail ISP database. The ISP holds only display names
-          and certificate JTIs.
+          and certificate JTIs. Every lookup in this console is audit-logged under the Personal
+          Information Protection Act.
         </div>
       </Card>
 

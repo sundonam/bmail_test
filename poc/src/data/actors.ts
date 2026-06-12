@@ -61,6 +61,9 @@ export const initialState: DemoState = {
       {
         id: 'rev-001',
         memberId: 'coupang-44120',
+        product: 'Natural latex pillow 60x40, medium-firm',
+        rating: 4,
+        helpfulCount: 12,
         content: 'Latex pillow held up well through my first month in the dorm. Good firmness.',
         identifiable: false,
         postedAt: '2024-03-12'
@@ -68,6 +71,9 @@ export const initialState: DemoState = {
       {
         id: 'rev-002',
         memberId: 'coupang-44120',
+        product: 'Aluminum laptop stand, height adjustable',
+        rating: 5,
+        helpfulCount: 7,
         content: 'Laptop stand for grad presentations. Angle adjustment is solid, no wobble.',
         identifiable: false,
         postedAt: '2024-11-08'
